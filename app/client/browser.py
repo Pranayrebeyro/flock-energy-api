@@ -22,7 +22,12 @@ class BrowserSession:
 
         self.browser = await self.playwright.chromium.launch(
 
-            headless=False
+            headless=True,
+
+            args=[
+                "--no-sandbox",
+                "--disable-setuid-sandbox"
+            ]
 
         )
 
