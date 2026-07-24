@@ -21,7 +21,6 @@ class UrjaClient:
         if self.logged_in:
             return True
 
-
         await self.browser.start()
 
         page = self.browser.page
@@ -33,11 +32,9 @@ class UrjaClient:
         )
 
 
-        print("LOGIN PAGE OPENED")
-        print("Please login manually in the browser window...")
+        print("LOGIN PAGE OPEN")
 
 
-        # Optional: fill credentials
         await page.fill(
             "input[name='email']",
             self.username
@@ -50,18 +47,27 @@ class UrjaClient:
         )
 
 
-        # Wait until user login completes
+        print("CREDENTIALS FILLED")
+
+
+        await page.click(
+            "button[type='submit']"
+        )
+
+
         try:
 
             await page.wait_for_url(
                 "**/meters",
-                timeout=120000   # 2 minutes
+                timeout=30000
             )
 
+        except Exception as e:
 
-        except Exception:
-
-            print("Login timeout")
+            print(
+                "LOGIN FAILED:",
+                e
+            )
 
             return False
 
