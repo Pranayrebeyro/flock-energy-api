@@ -1,5 +1,6 @@
 from app.client.browser import BrowserSession
 from app.config import settings
+import re
 
 
 class UrjaClient:
@@ -59,45 +60,28 @@ class UrjaClient:
         print("LOGIN BUTTON CLICKED")
 
 
-        # wait for either success or failure
-        try:
-
-            await page.wait_for_timeout(5000)
+        await page.wait_for_timeout(5000)
 
 
-            print(
-                "CURRENT URL:",
-                page.url
-            )
+        cookies = await self.browser.context.cookies()
 
 
-            print(
-                "COOKIES:",
-                await self.browser.context.cookies()
-            )
+        print(
+            "COOKIES:",
+            cookies
+        )
 
 
-            cookies = await self.browser.context.cookies()
+        if any(
+            "session" in cookie["name"]
+            for cookie in cookies
+        ):
 
+            print("LOGIN SUCCESS")
 
-            if any(
-                "session" in c["name"]
-                for c in cookies
-            ):
+            self.logged_in = True
 
-                print("LOGIN SUCCESS")
-
-                self.logged_in = True
-
-                return True
-
-
-        except Exception as e:
-
-            print(
-                "LOGIN ERROR:",
-                e
-            )
+            return True
 
 
         print("LOGIN FAILED")
@@ -107,67 +91,17 @@ class UrjaClient:
 
 
 
-    async def get_meters(self):
-
-        success = await self.login()
-
-
-        if not success:
-
-            return {
-                "error": "login failed"
-            }
-
-
-        page = self.browser.page
-
-        api_response = {}
-
-
-
-        async def capture(response):
-
-            if "/portal/meters/search" in response.url:
-
-                try:
-
-                    api_response.update(
-                        await response.json()
-                    )
-
-                except Exception:
-
-                    pass
-
-
-
-        page.on(
-            "response",
-            capture
-        )
-
-
-        await page.reload()
-
-        await page.wait_for_timeout(
-            3000
-        )
-
-
-        return api_response
-
-
-
-
 
     async def get_meter_geo(
         self,
         meter_id: str
-):
+    ):
 
         success = await self.login()
 
+
         if not success:
+
             return {
                 "error": "login failed"
             }
@@ -186,9 +120,6 @@ class UrjaClient:
 
 
         html = await page.content()
-
-
-        import re
 
 
         coordinates = re.findall(
@@ -220,10 +151,9 @@ class UrjaClient:
 
 
     async def get_meter_energy(
-            self,
-            meter_id: str
+        self,
+        meter_id: str
     ):
-
 
         success = await self.login()
 
@@ -233,7 +163,6 @@ class UrjaClient:
             return {
                 "error": "login failed"
             }
-
 
 
         page = self.browser.page
@@ -256,6 +185,7 @@ class UrjaClient:
 
                     data = await response.json()
 
+
                     if isinstance(data, dict):
 
                         energy_data.update(data)
@@ -274,17 +204,12 @@ class UrjaClient:
 
 
         await page.goto(
-
             f"{self.base_url}/meters/{meter_id}",
-
             wait_until="networkidle"
-
         )
 
 
-        await page.wait_for_timeout(
-            5000
-        )
+        await page.wait_for_timeout(5000)
 
 
         return energy_data
@@ -294,10 +219,9 @@ class UrjaClient:
 
 
     async def get_meter(
-            self,
-            meter_id: str
+        self,
+        meter_id: str
     ):
-
 
         success = await self.login()
 

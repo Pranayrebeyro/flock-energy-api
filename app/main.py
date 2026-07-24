@@ -42,6 +42,8 @@ async def root():
     }
 
 
+
+# Complete meter details
 @app.get("/api/v1/meters/{meter_id}")
 async def get_meter(
     meter_id: str
@@ -52,6 +54,50 @@ async def get_meter(
     try:
 
         result = await client.get_meter(
+            meter_id
+        )
+
+        return result
+
+    finally:
+
+        await client.close()
+
+
+
+# Only geo data
+@app.get("/api/v1/meters/{meter_id}/geo")
+async def get_meter_geo(
+    meter_id: str
+):
+
+    client = UrjaClient()
+
+    try:
+
+        result = await client.get_meter_geo(
+            meter_id
+        )
+
+        return result
+
+    finally:
+
+        await client.close()
+
+
+
+# Only energy data
+@app.get("/api/v1/meters/{meter_id}/energy")
+async def get_meter_energy(
+    meter_id: str
+):
+
+    client = UrjaClient()
+
+    try:
+
+        result = await client.get_meter_energy(
             meter_id
         )
 
