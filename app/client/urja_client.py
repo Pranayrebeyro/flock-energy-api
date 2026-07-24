@@ -29,15 +29,13 @@ class UrjaClient:
 
         await page.goto(
             f"{self.base_url}/login",
-            wait_until="networkidle"
+            wait_until="domcontentloaded"
         )
 
 
-        print("LOGIN PAGE OPENED")
-        print("Please login manually in the browser window...")
+        print("LOGIN PAGE OPEN")
 
 
-        # Optional: fill credentials
         await page.fill(
             "input[name='email']",
             self.username
@@ -50,39 +48,61 @@ class UrjaClient:
         )
 
 
-        # Wait until user login completes
+        print("CREDENTIALS FILLED")
+
+
+        await page.click(
+            "button[type='submit']"
+        )
+
+
+        print("LOGIN BUTTON CLICKED")
+
+
+        # wait for either success or failure
         try:
 
-            await page.wait_for_url(
-                "**/meters",
-                timeout=120000   # 2 minutes
+            await page.wait_for_timeout(5000)
+
+
+            print(
+                "CURRENT URL:",
+                page.url
             )
 
 
-        except Exception:
-
-            print("Login timeout")
-
-            return False
-
+            print(
+                "COOKIES:",
+                await self.browser.context.cookies()
+            )
 
 
-        print(
-            "LOGIN SUCCESS:",
-            page.url
-        )
+            cookies = await self.browser.context.cookies()
 
 
-        print(
-            "COOKIES:",
-            await self.browser.context.cookies()
-        )
+            if any(
+                "session" in c["name"]
+                for c in cookies
+            ):
+
+                print("LOGIN SUCCESS")
+
+                self.logged_in = True
+
+                return True
 
 
-        self.logged_in = True
+        except Exception as e:
+
+            print(
+                "LOGIN ERROR:",
+                e
+            )
 
 
-        return True
+        print("LOGIN FAILED")
+
+        return False
 
 
 
