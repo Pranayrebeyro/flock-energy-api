@@ -21,6 +21,7 @@ class UrjaClient:
         if self.logged_in:
             return True
 
+
         await self.browser.start()
 
         page = self.browser.page
@@ -32,9 +33,11 @@ class UrjaClient:
         )
 
 
-        print("LOGIN PAGE OPEN")
+        print("LOGIN PAGE OPENED")
+        print("Please login manually in the browser window...")
 
 
+        # Optional: fill credentials
         await page.fill(
             "input[name='email']",
             self.username
@@ -47,27 +50,18 @@ class UrjaClient:
         )
 
 
-        print("CREDENTIALS FILLED")
-
-
-        await page.click(
-            "button[type='submit']"
-        )
-
-
+        # Wait until user login completes
         try:
 
             await page.wait_for_url(
                 "**/meters",
-                timeout=30000
+                timeout=120000   # 2 minutes
             )
 
-        except Exception as e:
 
-            print(
-                "LOGIN FAILED:",
-                e
-            )
+        except Exception:
+
+            print("Login timeout")
 
             return False
 
@@ -206,9 +200,10 @@ class UrjaClient:
 
 
     async def get_meter_energy(
-        self,
-        meter_id: str
-):
+            self,
+            meter_id: str
+    ):
+
 
         success = await self.login()
 
@@ -241,11 +236,9 @@ class UrjaClient:
 
                     data = await response.json()
 
-
                     if isinstance(data, dict):
 
                         energy_data.update(data)
-
 
 
             except Exception:
@@ -254,12 +247,10 @@ class UrjaClient:
 
 
 
-
         page.on(
             "response",
             capture
         )
-
 
 
         await page.goto(
@@ -276,15 +267,7 @@ class UrjaClient:
         )
 
 
-
-        return {
-
-            "consumption": energy_data.get(
-                "data",
-                []
-            )
-
-        }
+        return energy_data
 
 
 
